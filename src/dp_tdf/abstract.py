@@ -128,11 +128,16 @@ class AbstractModel(LightningModule):
         Args:
             x: (batch, c, 261120)
         '''
-        dim_b = x.shape[0]
-        x = x.reshape([dim_b * self.audio_ch, -1]) # (batch*c, 261120)
+        batch = x.shape[0]
+        x = x.reshape([batch * self.audio_ch, -1]) # (batch*c, 261120)
         x = torch.stft(x, n_fft=self.n_fft, hop_length=self.hop_length, window=self.window, center=True, return_complex=True) # (batch*c, 3073, 256, 2)
+
+        real = x.real  # (batch*c, 3073, 256)
+        imag = x.imag  # (batch*c, 3073, 256)
+        x = torch.stack((real, imag), dim=-1)  # (batch*c, 3073, 256, 2)
+
         x = x.permute([0, 3, 1, 2]) # (batch*c, 2, 3073, 256)
-        x = x.reshape([dim_b, self.audio_ch, 2, self.n_bins, -1]).reshape([dim_b, self.audio_ch * 2, self.n_bins, -1]) # (batch, c*2, 3073, 256)
+        x = x.reshape([batch, self.audio_ch, 2, self.n_bins, -1]).reshape([batch, self.audio_ch * 2, self.n_bins, -1]) # (batch, c*2, 3073, 256)
         return x[:, :, :self.dim_f] # (batch, c*2, 2048, 256)
 
     def istft(self, x):
@@ -144,7 +149,10 @@ class AbstractModel(LightningModule):
         x = torch.cat([x, self.freq_pad.repeat([x.shape[0], 1, 1, x.shape[-1]])], -2) # (batch, c*2, 3073, 256)
         x = x.reshape([dim_b, self.audio_ch, 2, self.n_bins, -1]).reshape([dim_b * self.audio_ch, 2, self.n_bins, -1]) # (batch*c, 2, 3073, 256)
         x = x.permute([0, 2, 3, 1]) # (batch*c, 3073, 256, 2)
-        x = torch.istft(x, n_fft=self.n_fft, hop_length=self.hop_length, window=self.window, center=True, return_complex=True) # (batch*c, 261120)
+
+        x_contiguous = x.contiguous()
+        x_complex = torch.view_as_complex(x_contiguous)
+        x = torch.istft(x_complex, n_fft=self.n_fft, hop_length=self.hop_length, window=self.window, center=True)
         return x.reshape([dim_b, self.audio_ch, -1]) # (batch,c,261120)
 
     def demix(self, mix, inf_chunk_size, batch_size=5, inf_overf=4):
