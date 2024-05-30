@@ -11,21 +11,22 @@ def run_once(src_name):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # create dummy config
-    yaml = rf"G:\sdx2023fork\configs\model\{src_name}.yaml"
+    yaml = rf"D:\Project\tfc-tdf-lstm\configs\model\{src_name}.yaml"
     # yaml = r"G:\sdx2023fork\configs\model\TDF_mono.yaml"
     # load yaml into dict
     confg = OmegaConf.load(yaml)
-
-    stft = torch.rand(1, 2 * confg.audio_ch, confg.dim_f, 256).to(device)
     # create model
     model = DPTDFNet(**confg).to(device)
+    print(model)
 
-    pred_detail = model(stft)
-    print(pred_detail.shape)
+    Xn = torch.rand(1, 2 * confg.audio_ch, confg.dim_f, 256).to(device)
+    Yn_hat = model(Xn)
+    yn_hat = model.istft(Yn_hat)
+    print(yn_hat.shape)
 
 
 def run_train(src_name):
-    yaml = rf"G:\sdx2023fork\configs\model\{src_name}.yaml"
+    yaml = rf"D:\Project\tfc - tdf - lstm\configs\model\{src_name}.yaml"
     h = OmegaConf.load(yaml)
     device = torch.device('cuda')
     b = 2
@@ -42,7 +43,7 @@ def run_train(src_name):
 
 
 def run_val(src_name):
-    yaml = rf"G:\sdx2023fork\configs\model\{src_name}.yaml"
+    yaml = rf"D:\Project\tfc - tdf - lstm\configs\model\{src_name}.yaml"
     h = OmegaConf.load(yaml)
     device = torch.device('cuda')
     b = 2
@@ -67,7 +68,8 @@ if __name__ == "__main__":
     # src_name = "bass"
     # src_name = "drums"
     # src_name = "other"
+    print(123)
     run_once(src_name)
-    run_train(src_name)
-    with torch.no_grad():
-        run_val(src_name)
+    # run_train(src_name)
+    # with torch.no_grad():
+    #     run_val(src_name)
