@@ -18,7 +18,7 @@ num_blocks: 5
 l: 3
 g: 32
 k: 3
-bn: 2
+bf: 2
 bias: False
 bn_norm: BN
 bandsequence:
