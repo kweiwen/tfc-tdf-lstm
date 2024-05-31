@@ -8,7 +8,7 @@ from src.layers import (get_norm)
 from src.dp_tdf.abstract import AbstractModel
 
 class DPTDFNet(AbstractModel):
-    def __init__(self, num_blocks, l, g, k, bn, bias, bn_norm, bandsequence, block_type,  **kwargs):
+    def __init__(self, num_blocks, l, g, k, bf, bias, bn_norm, bandsequence, block_type, **kwargs):
 
         super(DPTDFNet, self).__init__(**kwargs)
         # self.save_hyperparameters()
@@ -17,7 +17,7 @@ class DPTDFNet(AbstractModel):
         self.l = l
         self.g = g
         self.k = k
-        self.bn = bn
+        self.bf = bf # bottleneck factor
         self.bias = bias
 
         self.n = num_blocks // 2
@@ -46,7 +46,7 @@ class DPTDFNet(AbstractModel):
         for i in range(self.n):
             c_in = c
 
-            self.encoding_blocks.append(T_BLOCK(c_in, c, l, f, k, bn, bn_norm, bias=bias))
+            self.encoding_blocks.append(T_BLOCK(c_in, c, l, f, k, bf, bn_norm, bias=bias))
             self.ds.append(
                 nn.Sequential(
                     nn.Conv2d(in_channels=c, out_channels=c + g, kernel_size=scale, stride=scale),
@@ -57,7 +57,7 @@ class DPTDFNet(AbstractModel):
             f = f // 2
             c += g
 
-        self.bottleneck_block1 = T_BLOCK(c, c, l, f, k, bn, bn_norm, bias=bias)
+        self.bottleneck_block1 = T_BLOCK(c, c, l, f, k, bf, bn_norm, bias=bias)
         self.bottleneck_block2 = BandSequenceModelModule(
             **bandsequence,
             input_dim_size=c,
@@ -79,7 +79,7 @@ class DPTDFNet(AbstractModel):
             f = f * 2
             c -= g
 
-            self.decoding_blocks.append(T_BLOCK(c, c, l, f, k, bn, bn_norm, bias=bias))
+            self.decoding_blocks.append(T_BLOCK(c, c, l, f, k, bf, bn_norm, bias=bias))
 
         self.final_conv = nn.Sequential(
             nn.Conv2d(in_channels=c, out_channels=self.dim_c_out, kernel_size=(1, 1)),

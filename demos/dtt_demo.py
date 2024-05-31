@@ -18,6 +18,7 @@ def run_once(src_name):
     # create model
     model = DPTDFNet(**confg).to(device)
     print(model)
+    print("training parameter:", sum(p.numel() for p in model.parameters() if p.requires_grad))
 
     Xn = torch.rand(1, 2 * confg.audio_ch, confg.dim_f, 256).to(device)
     Yn_hat = model(Xn)
