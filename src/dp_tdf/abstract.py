@@ -138,6 +138,8 @@ class AbstractModel(LightningModule):
 
         x = x.permute([0, 3, 1, 2]) # (batch*c, 2, 3073, 256)
         x = x.reshape([batch, self.audio_ch, 2, self.n_bins, -1]).reshape([batch, self.audio_ch * 2, self.n_bins, -1]) # (batch, c*2, 3073, 256)
+
+        # keep in mind there is some complex information being truncated.
         return x[:, :, :self.dim_f] # (batch, c*2, 2048, 256)
 
     def istft(self, x):
