@@ -77,7 +77,7 @@ class BandSequenceModelModule(nn.Module):
 
         input_dim_size = input_dim_size // n_heads
         hidden_dim_size = hidden_dim_size // n_heads
-        group_num = input_dim_size // 16
+        group_num = input_dim_size // 16 # quote from paper, For IDPM, we set L = 4 and ensure that each Group Norm has 16 channels.
         # print(f"input_dim_size: {input_dim_size}, hidden_dim_size: {hidden_dim_size}, group_num: {group_num}, num_layers: {num_layers}, n_heads: {n_heads}")
 
         # print(group_num, input_dim_size)
@@ -135,3 +135,4 @@ if __name__ == '__main__':
 
     print(f"In: {in_features.shape}\nOut: {out_features.shape}")
     print(f"Total number of parameters: {sum([p.numel() for p in model.parameters()])}")
+    print(f"Total number of trainable parameters: {sum([p.numel() for p in model.parameters() if p.requires_grad])}")
