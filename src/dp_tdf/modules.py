@@ -47,10 +47,10 @@ class DenseTFC(nn.Module):
         return self.conv[-1](x)
 
 
-class TFC_TDF(nn.Module):
+class TFC_TDF_v1(nn.Module):
     def __init__(self, c_in, c_out, l, f, k, bn, bn_norm, dense=False, bias=True):
 
-        super(TFC_TDF, self).__init__()
+        super(TFC_TDF_v1, self).__init__()
 
         self.use_tdf = bn is not None
 
@@ -80,10 +80,10 @@ class TFC_TDF(nn.Module):
         return x + self.tdf(x) if self.use_tdf else x
 
 
-class TFC_TDF_Res1(nn.Module):
+class TFC_TDF_v2(nn.Module):
     def __init__(self, c_in, c_out, l, f, k, bn, bn_norm, dense=False, bias=True):
 
-        super(TFC_TDF_Res1, self).__init__()
+        super(TFC_TDF_v2, self).__init__()
 
         self.use_tdf = bn is not None
 
@@ -117,12 +117,12 @@ class TFC_TDF_Res1(nn.Module):
         return x + self.tdf(x) if self.use_tdf else x
 
 
-class TFC_TDF_Res2(nn.Module):
-    def __init__(self, c_in, c_out, l, f, k, bn, bn_norm, dense=False, bias=True):
+class TFC_TDF_v3(nn.Module):
+    def __init__(self, c_in, c_out, l, f, k, bf, bn_norm, dense=False, bias=True):
 
-        super(TFC_TDF_Res2, self).__init__()
+        super(TFC_TDF_v3, self).__init__()
 
-        self.use_tdf = bn is not None
+        self.use_tdf = bf is not None
 
         self.tfc1 = TFC(c_in, c_out, l, k, bn_norm)
         self.tfc2 = TFC(c_in, c_out, l, k, bn_norm)
@@ -130,7 +130,7 @@ class TFC_TDF_Res2(nn.Module):
         self.res = TFC(c_in, c_out, 1, k, bn_norm)
 
         if self.use_tdf:
-            if bn == 0:
+            if bf == 0:
                 # print(f"TDF={f},{f}")
                 self.tdf = nn.Sequential(
                     nn.Linear(f, f, bias=bias),
@@ -140,10 +140,10 @@ class TFC_TDF_Res2(nn.Module):
             else:
                 # print(f"TDF={f},{f // bn},{f}")
                 self.tdf = nn.Sequential(
-                    nn.Linear(f, f // bn, bias=bias),
+                    nn.Linear(f, f // bf, bias=bias),
                     get_norm(bn_norm, c_out),
                     nn.ReLU(),
-                    nn.Linear(f // bn, f, bias=bias),
+                    nn.Linear(f // bf, f, bias=bias),
                     get_norm(bn_norm, c_out),
                     nn.ReLU()
                 )

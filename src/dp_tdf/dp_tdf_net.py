@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch
 
-from src.dp_tdf.modules import TFC_TDF, TFC_TDF_Res1, TFC_TDF_Res2
+from src.dp_tdf.modules import TFC_TDF_v1, TFC_TDF_v2, TFC_TDF_v3
 from src.dp_tdf.bandsequence import BandSequenceModelModule
 
 from src.layers import (get_norm)
@@ -24,11 +24,11 @@ class DPTDFNet(AbstractModel):
         scale = (2, 2)
 
         if block_type == "TFC_TDF":
-            T_BLOCK = TFC_TDF
+            T_BLOCK = TFC_TDF_v1
         elif block_type == "TFC_TDF_Res1":
-            T_BLOCK = TFC_TDF_Res1
+            T_BLOCK = TFC_TDF_v2
         elif block_type == "TFC_TDF_Res2":
-            T_BLOCK = TFC_TDF_Res2
+            T_BLOCK = TFC_TDF_v3
         else:
             raise ValueError(f"Unknown block type {block_type}")
 
@@ -90,6 +90,7 @@ class DPTDFNet(AbstractModel):
         Args:
             x: (batch, c*2, 2048, 256)
         '''
+        B, C, F, T = x.shape
         x = self.first_conv(x)
 
         x = x.transpose(-1, -2)
