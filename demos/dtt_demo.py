@@ -17,7 +17,7 @@ def run_once(src_name):
     confg = OmegaConf.load(yaml)
     # create model
     model = DPTDFNet(**confg).to(device)
-    print(model)
+    # print(model)
     print("training parameter:", sum(p.numel() for p in model.parameters() if p.requires_grad))
 
     Xn = torch.rand(1, 2 * confg.audio_ch, confg.dim_f, 256).to(device)
@@ -69,7 +69,7 @@ if __name__ == "__main__":
     # src_name = "bass"
     # src_name = "drums"
     # src_name = "other"
-    print(123)
+    # print(123)
     run_once(src_name)
     # run_train(src_name)
     # with torch.no_grad():

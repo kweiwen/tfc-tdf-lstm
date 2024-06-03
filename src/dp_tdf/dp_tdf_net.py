@@ -9,7 +9,7 @@ from src.dp_tdf.abstract import AbstractModel
 
 class DPTDFNet(AbstractModel):
     def __init__(self, num_blocks, l, g, k, bf, bias, bn_norm, bandsequence, block_type, **kwargs):
-
+        # print(f"**kwargs: {kwargs}")
         super(DPTDFNet, self).__init__(**kwargs)
         # self.save_hyperparameters()
 
