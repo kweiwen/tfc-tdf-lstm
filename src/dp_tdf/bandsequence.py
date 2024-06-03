@@ -67,8 +67,8 @@ class BandSequenceModelModule(nn.Module):
             hidden_dim_size: int,
             rnn_type: str = 'lstm',
             bidirectional: bool = True,
-            num_layers: int = 12,
-            n_heads: int = 4,
+            num_layers: int = 4,
+            n_heads: int = 2,
     ):
         super(BandSequenceModelModule, self).__init__()
 
@@ -78,7 +78,7 @@ class BandSequenceModelModule(nn.Module):
         input_dim_size = input_dim_size // n_heads
         hidden_dim_size = hidden_dim_size // n_heads
         group_num = input_dim_size // 16
-        # print(f"input_dim_size: {input_dim_size}, hidden_dim_size: {hidden_dim_size}, group_num: {group_num}")
+        # print(f"input_dim_size: {input_dim_size}, hidden_dim_size: {hidden_dim_size}, group_num: {group_num}, num_layers: {num_layers}, n_heads: {n_heads}")
 
         # print(group_num, input_dim_size)
 
@@ -95,11 +95,11 @@ class BandSequenceModelModule(nn.Module):
 
     def forward(self, x: torch.Tensor):
         """
-        Input shape: [batch_size, k_subbands, time, n_features]
-        Output shape: [batch_size, k_subbands, time, n_features]
+        Input shape: [batch_size, n_features, time, k_subbands]
+        Output shape: [batch_size, n_features, time, k_subbands]
         """
         # x (b,c,t,f)
-        b,c,t,f = x.shape
+        b, c, t, f = x.shape
         x = x.view(b * self.n_heads, c // self.n_heads, t, f) # [b*n_heads, c//n_heads, t, f]
 
         x = x.permute(0, 3, 2, 1).contiguous()  # [b*n_heads, f, t, c//n_heads]
@@ -114,17 +114,18 @@ class BandSequenceModelModule(nn.Module):
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    batch_size, k_subbands, t_timesteps, input_dim = 4, 41, 512, 128
+    batch_size, k_subbands, t_timesteps, input_dim = 1, 96, 64, 512
     in_features = torch.rand(batch_size, k_subbands, t_timesteps, input_dim).to(device)
 
     cfg = {
         # "t_timesteps": t_timesteps,
-        "group_num": 32,
-        "input_dim_size": 128,
-        "hidden_dim_size": 256,
+        # "group_num": 32,
+        "input_dim_size": k_subbands,
+        "hidden_dim_size": k_subbands*2,
         "rnn_type": "LSTM",
         "bidirectional": True,
-        "num_layers": 1
+        "num_layers": 4,
+        "n_heads": 2,
     }
     model = BandSequenceModelModule(**cfg).to(device)
     _ = model.eval()
