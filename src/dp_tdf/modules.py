@@ -118,8 +118,18 @@ class TFC_TDF_v2(nn.Module):
 
 
 class TFC_TDF_v3(nn.Module):
-    def __init__(self, c_in, c_out, l, f, k, bf, bn_norm, dense=False, bias=True):
-
+    def __init__(
+            self,
+            c_in=32,
+            c_out=32,
+            l=3,
+            f=2048,
+            k=3,
+            bf=8,
+            bn_norm='BN',
+            dense=False,
+            bias=True
+    ):
         super(TFC_TDF_v3, self).__init__()
 
         self.use_tdf = bf is not None
@@ -134,17 +144,17 @@ class TFC_TDF_v3(nn.Module):
                 # print(f"TDF={f},{f}")
                 self.tdf = nn.Sequential(
                     nn.Linear(f, f, bias=bias),
-                    get_norm(bn_norm, c_out),
+                    nn.BatchNorm2d(c_out),
                     nn.ReLU()
                 )
             else:
                 # print(f"TDF={f},{f // bn},{f}")
                 self.tdf = nn.Sequential(
                     nn.Linear(f, f // bf, bias=bias),
-                    get_norm(bn_norm, c_out),
+                    nn.BatchNorm2d(c_out),
                     nn.ReLU(),
                     nn.Linear(f // bf, f, bias=bias),
-                    get_norm(bn_norm, c_out),
+                    nn.BatchNorm2d(c_out),
                     nn.ReLU()
                 )
 
@@ -156,3 +166,5 @@ class TFC_TDF_v3(nn.Module):
         x = self.tfc2(x)
         x = x + res
         return x
+
+
