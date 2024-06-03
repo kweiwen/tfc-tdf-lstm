@@ -167,4 +167,15 @@ class TFC_TDF_v3(nn.Module):
         x = x + res
         return x
 
+if __name__ == '__main__':
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+    batch_size, k_subbands, t_timesteps, input_dim = 1, 96, 64, 512
+    in_features = torch.rand(batch_size, k_subbands, t_timesteps, input_dim).to(device)
+    net = TFC_TDF_v3()
+
+    print(f"Total number of parameters: {sum([p.numel() for p in net.parameters()])}")
+    print(f"tfc1: {sum([p.numel() for p in net.tfc1.parameters() if p.requires_grad])}")
+    print(f"tfc2: {sum([p.numel() for p in net.tfc2.parameters() if p.requires_grad])}")
+    print(f"res : {sum([p.numel() for p in net.res.parameters() if p.requires_grad])}")
+    print(f"tdf : {sum([p.numel() for p in net.tdf.parameters() if p.requires_grad])}")
