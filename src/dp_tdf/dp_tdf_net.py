@@ -91,14 +91,15 @@ class DPTDFNet(AbstractModel):
             x: (batch, c*2, 2048, 256)
         '''
         B, C, F, T = x.shape
+
         x = self.first_conv(x)
 
         x = x.transpose(-1, -2)
 
-        ds_outputs = []
+        skip_connections = []
         for i in range(self.n):
             x = self.encoding_blocks[i](x)
-            ds_outputs.append(x)
+            skip_connections.append(x)
             x = self.ds[i](x)
 
         # print(f"bottleneck in: {x.shape}")
@@ -109,7 +110,7 @@ class DPTDFNet(AbstractModel):
             x = self.us[i](x)
             # print(f"us{i} in: {x.shape}")
             # print(f"ds{i} out: {ds_outputs[-i - 1].shape}")
-            x = x * ds_outputs[-i - 1]
+            x = x * skip_connections[-i - 1]
             x = self.decoding_blocks[i](x)
 
         x = x.transpose(-1, -2)
