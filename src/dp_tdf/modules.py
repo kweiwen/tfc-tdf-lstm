@@ -167,6 +167,49 @@ class TFC_TDF_v3(nn.Module):
         x = x + res
         return x
 
+
+class TFC_TDF(nn.Module):
+    def __init__(self, in_c, c, l, f, bn):
+        super().__init__()
+
+        self.blocks = nn.ModuleList()
+        for i in range(l):
+            block = nn.Module()
+
+            block.tfc1 = nn.Sequential(
+                nn.BatchNorm2d(in_c),
+                nn.ReLU(),
+                nn.Conv2d(in_c, c, 3, 1, 1, bias=False),
+            )
+
+            block.tdf = nn.Sequential(
+                nn.BatchNorm2d(c),
+                nn.ReLU(),
+                nn.Linear(f, f // bn, bias=False),
+                nn.BatchNorm2d(c),
+                nn.ReLU(),
+                nn.Linear(f // bn, f, bias=False),
+            )
+            block.tfc2 = nn.Sequential(
+                nn.BatchNorm2d(c),
+                nn.ReLU(),
+                nn.Conv2d(c, c, 3, 1, 1, bias=False),
+            )
+            block.shortcut = nn.Conv2d(in_c, c, 1, 1, 0, bias=False)
+
+            self.blocks.append(block)
+            in_c = c
+
+    def forward(self, x):
+        for block in self.blocks:
+            s = block.shortcut(x)
+            x = block.tfc1(x)
+            x = x + block.tdf(x)
+            x = block.tfc2(x)
+            x = x + s
+        return x
+
+
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
